@@ -40,6 +40,7 @@ import           Cardano.Crypto (RequiresNetworkMagic (..))
 import qualified Cardano.Crypto as Crypto
 import qualified Cardano.Crypto.Hash.Class as CryptoClass
 import qualified Cardano.Ledger.Alonzo.Genesis as SL (AlonzoGenesis)
+import qualified Cardano.Ledger.Conway.Genesis as SL (ConwayGenesis)
 import           Cardano.Ledger.Crypto
 import qualified Cardano.Ledger.Era as Core
 import qualified Cardano.Tools.DBAnalyser.Block.Byron as BlockByron
@@ -137,6 +138,8 @@ instance HasProtocolInfo (CardanoBlock StandardCrypto) where
       Aeson.eitherDecodeFileStrict' (shelleyGenesisPath cc)
     genesisAlonzo  <- either (error . show) return =<<
       Aeson.eitherDecodeFileStrict' (alonzoGenesisPath cc)
+    genesisConway  <- either (error . show) return =<<
+      Aeson.eitherDecodeFileStrict' (conwayGenesisPath cc)
 
     initialNonce <- case shelleyGenesisHash cc of
       Just h  -> pure h
@@ -154,6 +157,7 @@ instance HasProtocolInfo (CardanoBlock StandardCrypto) where
           threshold
           genesisShelley
           genesisAlonzo
+          genesisConway
           initialNonce
           (hardForkTriggers cc)
 
@@ -174,6 +178,9 @@ data CardanoConfig = CardanoConfig {
     -- | @AlonzoGenesisFile@ field
   , alonzoGenesisPath    :: FilePath
 
+    -- | @ConwayGenesisFile@ field
+  , conwayGenesisPath    :: FilePath
+
     -- | @Test*HardForkAtEpoch@ for each Shelley era
   , hardForkTriggers     :: NP STA (CardanoShelleyEras StandardCrypto)
   }
@@ -184,13 +191,23 @@ instance AdjustFilePaths CardanoConfig where
             byronGenesisPath    = f $ byronGenesisPath cc
           , shelleyGenesisPath  = f $ shelleyGenesisPath cc
           , alonzoGenesisPath   = f $ alonzoGenesisPath cc
+          , conwayGenesisPath   = f $ conwayGenesisPath cc
+          -- Byron, Shelley, Alonzo, and Conway are the only eras that have genesis
+          -- data. The actual genesis block is a Byron block, therefore we needed a
+          -- genesis file. To transition to Shelley, we needed to add some additional
+          -- genesis data (eg some initial values of new protocol parametrers like
+          -- @d@). Similarly in Alonzo (eg Plutus interpreter parameters/limits) and
+          -- in Conway too (ie keys of the new genesis delegates).
+          --
+          -- In contrast, the Allegra, Mary, and Babbage eras did not introduce any new
+          -- genesis data.
           }
 
 -- | Shelley transition arguments
 data STA :: Type -> Type where
   STA ::
-       -- so far, the context is either () or AlonzoGenesis
-       (SL.AlonzoGenesis -> Core.TranslationContext era)
+       -- so far, the context is either () or AlonzoGenesis or ConwayGenesis
+       ((SL.AlonzoGenesis, SL.ConwayGenesis StandardCrypto) -> Core.TranslationContext era)
     -> TriggerHardFork
     -> STA (ShelleyBlock proto era)
 
@@ -211,11 +228,13 @@ instance Aeson.FromJSON CardanoConfig where
 
     alonzoGenesisPath <- v Aeson..: "AlonzoGenesisFile"
 
+    conwayGenesisPath <- v Aeson..: "ConwayGenesisFile"
+
     hardForkTriggers <- do
       let f ::
                Aeson.Key
             -> Word16   -- ^ the argument to 'TriggerHardForkAtVersion'
-            -> (SL.AlonzoGenesis -> Core.TranslationContext era)
+            -> ((SL.AlonzoGenesis, SL.ConwayGenesis StandardCrypto) -> Core.TranslationContext era)
             -> (Aeson.Parser :.: STA) (ShelleyBlock proto era)
           f nm majProtVer ctxt = Comp $
               fmap (STA ctxt)
@@ -226,8 +245,9 @@ instance Aeson.FromJSON CardanoConfig where
         f "TestShelleyHardForkAtEpoch" 2 (\_ -> ()) :*
         f "TestAllegraHardForkAtEpoch" 3 (\_ -> ()) :*
         f "TestMaryHardForkAtEpoch"    4 (\_ -> ()) :*
-        f "TestAlonzoHardForkAtEpoch"  5 id         :*
-        f "TestBabbageHardForkAtEpoch" 7 id         :*
+        f "TestAlonzoHardForkAtEpoch"  5 fst        :*
+        f "TestBabbageHardForkAtEpoch" 7 fst        :*
+        f "TestConwayHardForkAtEpoch"  8 snd        :*
         Nil
 
       let isBad :: NP STA xs -> Bool
@@ -248,6 +268,7 @@ instance Aeson.FromJSON CardanoConfig where
         , shelleyGenesisPath = shelleyGenesisPath
         , shelleyGenesisHash = shelleyGenesisHash
         , alonzoGenesisPath = alonzoGenesisPath
+        , conwayGenesisPath = conwayGenesisPath
         , hardForkTriggers = hardForkTriggers
         }
 
@@ -269,10 +290,11 @@ mkCardanoProtocolInfo ::
   -> Maybe PBftSignatureThreshold
   -> ShelleyGenesis StandardShelley
   -> SL.AlonzoGenesis
+  -> SL.ConwayGenesis StandardCrypto
   -> Nonce
   -> NP STA (CardanoShelleyEras StandardCrypto)
   -> ProtocolInfo IO (CardanoBlock StandardCrypto)
-mkCardanoProtocolInfo genesisByron signatureThreshold genesisShelley genesisAlonzo initialNonce hardForkTriggers =
+mkCardanoProtocolInfo genesisByron signatureThreshold genesisShelley genesisAlonzo genesisConway initialNonce hardForkTriggers =
     protocolInfoCardano
       ProtocolParamsByron {
           byronGenesis                = genesisByron
@@ -307,22 +329,28 @@ mkCardanoProtocolInfo genesisByron signatureThreshold genesisShelley genesisAlon
           babbageProtVer                 = ProtVer 7 0
         , babbageMaxTxCapacityOverrides  = TxLimits.mkOverrides TxLimits.noOverridesMeasure
         }
+      ProtocolParamsConway {
+          conwayProtVer                  = ProtVer 8 0
+        , conwayMaxTxCapacityOverrides   = TxLimits.mkOverrides TxLimits.noOverridesMeasure
+        }
       (unSTA shelleyTransition)
       (unSTA allegraTransition)
       (unSTA maryTransition)
       (unSTA alonzoTransition)
       (unSTA babbageTransition)
+      (unSTA conwayTransition)
   where
     ( shelleyTransition :*
       allegraTransition :*
       maryTransition    :*
       alonzoTransition  :*
       babbageTransition :*
+      conwayTransition  :*
       Nil
       ) = hardForkTriggers
 
     unSTA :: STA (ShelleyBlock proto era) -> ProtocolTransitionParamsShelleyBased era
-    unSTA (STA ctxt trigger) = ProtocolTransitionParamsShelleyBased (ctxt genesisAlonzo) trigger
+    unSTA (STA ctxt trigger) = ProtocolTransitionParamsShelleyBased (ctxt (genesisAlonzo, genesisConway)) trigger
 
 castHeaderHash ::
      HeaderHash ByronBlock

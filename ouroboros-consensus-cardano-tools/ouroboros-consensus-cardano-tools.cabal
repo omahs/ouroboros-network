@@ -67,6 +67,7 @@ library
                      , cardano-ledger-alonzo
                      , cardano-ledger-babbage
                      , cardano-ledger-byron
+                     , cardano-ledger-conway
                      , cardano-ledger-core
                      , cardano-ledger-shelley
                      , cardano-protocol-tpraos
@@ -93,6 +94,7 @@ library
                      , Cardano.Node.Protocol.Alonzo
                      , Cardano.Node.Protocol.Byron
                      , Cardano.Node.Protocol.Cardano
+                     , Cardano.Node.Protocol.Conway
                      , Cardano.Node.Protocol.Shelley
                      , Cardano.Tools.DBAnalyser.Analysis.BenchmarkLedgerOps.SlotDataPoint
 
