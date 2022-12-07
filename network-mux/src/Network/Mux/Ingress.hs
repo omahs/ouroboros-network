@@ -19,10 +19,9 @@ import           Text.Printf
 import           Control.Concurrent.Class.MonadSTM.Strict
 import           Control.Monad
 import           Control.Monad.Class.MonadAsync
-import           Control.Monad.Class.MonadFork
 import           Control.Monad.Class.MonadThrow
-import           Control.Monad.Class.MonadTime
-import           Control.Monad.Class.MonadTimer hiding (timeout)
+import           Control.Monad.Class.MonadTime.SI
+import           Control.Monad.Class.MonadTimer.SI hiding (timeout)
 
 import           Network.Mux.Timeout
 import           Network.Mux.Trace

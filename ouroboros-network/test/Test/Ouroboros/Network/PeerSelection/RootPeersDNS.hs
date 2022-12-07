@@ -18,6 +18,7 @@ module Test.Ouroboros.Network.PeerSelection.RootPeersDNS
 import           Ouroboros.Network.PeerSelection.RootPeersDNS
 import           Ouroboros.Network.PeerSelection.Types (PeerAdvertise (..))
 
+import           Control.Applicative (Alternative)
 import           Control.Monad (forever, replicateM_)
 import           Data.ByteString.Char8 (pack)
 import           Data.Dynamic (Typeable, fromDynamic)
@@ -44,9 +45,9 @@ import           Control.Concurrent.Class.MonadSTM.Strict
 import           Control.Exception (throw)
 import           Control.Monad.Class.MonadAsync
 import           Control.Monad.Class.MonadThrow
-import           Control.Monad.Class.MonadTime (Time (..))
-import           Control.Monad.Class.MonadTimer
-import qualified Control.Monad.Class.MonadTimer as MonadTimer
+import           Control.Monad.Class.MonadTime.SI (Time (..))
+import           Control.Monad.Class.MonadTimer.SI
+import qualified Control.Monad.Class.MonadTimer.SI as MonadTimer
 import           Control.Monad.IOSim
 import           Control.Tracer (Tracer (Tracer), contramap)
 
@@ -304,7 +305,8 @@ newtype Solo a = Solo { unSolo :: a }
 -- | 'localRootPeersProvider' running with a given MockRoots env
 --
 mockLocalRootPeersProvider :: forall m.
-                              ( MonadAsync    m
+                              ( Alternative (STM m)
+                              , MonadAsync    m
                               , MonadDelay    m
                               , MonadTimer    m
                               , MonadTraceSTM m
@@ -357,6 +359,7 @@ mockLocalRootPeersProvider tracer (MockRoots localRootPeers dnsMapScript _ _)
 --
 mockPublicRootPeersProvider :: forall m a.
                                ( MonadAsync m
+                               , MonadDelay m
                                , MonadThrow m
                                , MonadTimer m
                                )
@@ -392,6 +395,7 @@ mockPublicRootPeersProvider tracer (MockRoots _ _ publicRootPeers dnsMapScript)
 -- | 'resolveDomainAddresses' running with a given MockRoots env
 --
 mockResolveDomainAddresses :: ( MonadAsync m
+                              , MonadDelay m
                               , MonadThrow m
                               , MonadTimer m
                               )

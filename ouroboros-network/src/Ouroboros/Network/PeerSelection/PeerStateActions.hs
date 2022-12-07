@@ -28,12 +28,13 @@ module Ouroboros.Network.PeerSelection.PeerStateActions
   , FailureType (..)
   ) where
 
+import           Control.Applicative (Alternative)
 import           Control.Concurrent.Class.MonadSTM.Strict
 import           Control.Exception (SomeAsyncException (..))
 import           Control.Monad (when, (<=<))
 import           Control.Monad.Class.MonadAsync
 import           Control.Monad.Class.MonadThrow
-import           Control.Monad.Class.MonadTimer
+import           Control.Monad.Class.MonadTimer.SI
 
 import           Control.Concurrent.JobPool (Job (..), JobPool)
 import qualified Control.Concurrent.JobPool as JobPool
@@ -511,7 +512,8 @@ data PeerStateActionsArguments muxMode socket peerAddr versionNumber m a b =
 
 withPeerStateActions
     :: forall (muxMode :: MuxMode) socket peerAddr versionNumber m a b x.
-       ( MonadAsync         m
+       ( Alternative (STM m)
+       , MonadAsync         m
        , MonadCatch         m
        , MonadLabelledSTM   m
        , MonadMask          m
@@ -995,7 +997,8 @@ mkApplicationHandleBundle muxBundle controlMessageBundle awaitVarsBundle =
 -- protocol bundle indicated by the type of the first argument.
 --
 startProtocols :: forall (muxMode :: MuxMode) (pt :: ProtocolTemperature) peerAddr m a b.
-                  ( MonadAsync m
+                  ( Alternative (STM m)
+                  , MonadAsync m
                   , MonadCatch m
                   , MonadThrow (STM m)
                   , HasInitiator muxMode ~ True

@@ -117,6 +117,7 @@ library
 
                      , io-classes
                      , io-sim
+                     , si-timers
 
                      , ouroboros-network-api
                      , ouroboros-network
@@ -188,6 +189,7 @@ test-suite test-consensus
 
                      , io-classes
                      , io-sim
+                     , si-timers
                      , typed-protocols
                      , ouroboros-network
                      , ouroboros-network-api

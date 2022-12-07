@@ -29,14 +29,15 @@ module Ouroboros.Network.Diffusion.P2P
   ) where
 
 
+import           Control.Applicative (Alternative)
 import           Control.Concurrent.Class.MonadSTM.Strict
 import           Control.Exception (IOException)
 import           Control.Monad.Class.MonadAsync (Async, MonadAsync)
 import qualified Control.Monad.Class.MonadAsync as Async
 import           Control.Monad.Class.MonadFork
 import           Control.Monad.Class.MonadThrow
-import           Control.Monad.Class.MonadTime
-import           Control.Monad.Class.MonadTimer
+import           Control.Monad.Class.MonadTime.SI
+import           Control.Monad.Class.MonadTimer.SI
 import           Control.Monad.Fix (MonadFix)
 import           Control.Tracer (Tracer, contramap, nullTracer, traceWith)
 import           Data.ByteString.Lazy (ByteString)
@@ -532,7 +533,9 @@ runM
     :: forall m ntnFd ntnAddr ntnVersion ntnVersionData
                 ntcFd ntcAddr ntcVersion ntcVersionData
                 resolver resolverError a.
-       ( MonadAsync       m
+       ( Alternative (STM m)
+       , MonadAsync       m
+       , MonadDelay       m
        , MonadEvaluate    m
        , MonadFix         m
        , MonadFork        m

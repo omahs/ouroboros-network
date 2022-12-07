@@ -40,8 +40,8 @@ module Ouroboros.Consensus.Network.NodeToNode (
 import           Codec.CBOR.Decoding (Decoder)
 import           Codec.CBOR.Encoding (Encoding)
 import           Codec.CBOR.Read (DeserialiseFailure)
-import           Control.Monad.Class.MonadTime (MonadTime)
-import           Control.Monad.Class.MonadTimer (MonadTimer)
+import           Control.Monad.Class.MonadTime.SI (MonadTime)
+import           Control.Monad.Class.MonadTimer.SI (MonadTimer)
 import           Control.Tracer
 import           Data.ByteString.Lazy (ByteString)
 import qualified Data.ByteString.Lazy as BSL

@@ -28,6 +28,7 @@ module Test.Ouroboros.Network.Diffusion.Node
   , UseLedgerAfter (..)
   ) where
 
+import           Control.Applicative (Alternative)
 import qualified Control.Concurrent.Class.MonadSTM as LazySTM
 import           Control.Concurrent.Class.MonadSTM.Strict
 import           Control.Monad ((>=>))
@@ -38,8 +39,8 @@ import           Control.Monad.Class.MonadSay
 import           Control.Monad.Class.MonadST (MonadST)
 import           Control.Monad.Class.MonadThrow (MonadEvaluate, MonadMask,
                      MonadThrow, SomeException)
-import           Control.Monad.Class.MonadTime (DiffTime, MonadTime)
-import           Control.Monad.Class.MonadTimer (MonadTimer)
+import           Control.Monad.Class.MonadTime.SI (DiffTime, MonadTime)
+import           Control.Monad.Class.MonadTimer.SI (MonadDelay, MonadTimer)
 import           Control.Monad.Fix (MonadFix)
 import           Control.Tracer (Tracer (..), nullTracer)
 
@@ -146,7 +147,9 @@ data Arguments m = Arguments
 type ResolverException = SomeException
 
 run :: forall resolver m.
-       ( MonadAsync       m
+       ( Alternative (STM m)
+       , MonadAsync       m
+       , MonadDelay       m
        , MonadEvaluate    m
        , MonadFix         m
        , MonadFork        m

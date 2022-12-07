@@ -20,6 +20,7 @@ import           Ouroboros.Consensus.Util.MonadSTM.StrictMVar hiding
                      (newEmptyMVar, newEmptyMVarWithInvariant, newMVar,
                      newMVarWithInvariant)
 
+import           Control.Concurrent.Class.MonadSTM.Strict as StrictSTM (MonadSTM(STM, atomically, retry, orElse), throwSTM)
 import           Control.Concurrent.Class.MonadSTM.Strict.TMVar as StrictSTM hiding
                      (newTMVar, newTMVarIO)
 import           Control.Concurrent.Class.MonadSTM.Strict.TVar as StrictSTM hiding
@@ -30,7 +31,6 @@ import           Control.Concurrent.Class.MonadSTM.Strict.TVar as StrictSTM hidi
 -- to use strict versions.
 import           Control.Concurrent.Class.MonadSTM.TBQueue as LazySTM
 import           Control.Concurrent.Class.MonadSTM.TQueue as LazySTM
-import           Control.Monad.Class.MonadSTM as StrictSTM
 
 import qualified Control.Concurrent.Class.MonadSTM.Strict as Strict
 import qualified Ouroboros.Consensus.Util.MonadSTM.StrictMVar as Strict

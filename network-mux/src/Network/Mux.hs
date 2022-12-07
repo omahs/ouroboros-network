@@ -55,8 +55,8 @@ import           Control.Monad
 import           Control.Monad.Class.MonadAsync
 import           Control.Monad.Class.MonadFork
 import           Control.Monad.Class.MonadThrow
-import           Control.Monad.Class.MonadTime
-import           Control.Monad.Class.MonadTimer hiding (timeout)
+import           Control.Monad.Class.MonadTime.SI
+import           Control.Monad.Class.MonadTimer.SI hiding (timeout)
 import           Control.Tracer
 
 import           Network.Mux.Channel
@@ -198,6 +198,7 @@ runMux :: forall m mode.
           ( MonadAsync m
           , MonadFork m
           , MonadLabelledSTM m
+          , Alternative (STM m)
           , MonadThrow (STM m)
           , MonadTime  m
           , MonadTimer m
@@ -344,6 +345,7 @@ newtype MonitorCtx m mode = MonitorCtx {
 monitor :: forall mode m.
            ( MonadAsync m
            , MonadMask m
+           , Alternative (STM m)
            , MonadThrow (STM m)
            )
         => Tracer m MuxTrace
@@ -621,7 +623,8 @@ traceMuxBearerState tracer state =
 -- irrespective of the 'StartOnDemandOrEagerly' value.
 --
 runMiniProtocol :: forall mode m a.
-                   ( MonadSTM   m
+                   ( Alternative (STM m)
+                   , MonadSTM   m
                    , MonadThrow m
                    , MonadThrow (STM m)
                    )

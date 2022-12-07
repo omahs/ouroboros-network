@@ -22,12 +22,9 @@ library
   exposed-modules:      Cardano.Network.Ping
   build-depends:        base                          >= 4.9      && < 4.17,
                         aeson                         >= 2.1.1.0  && < 3,
+                        contra-tracer                ^>= 0.1,
                         cborg                         >= 0.2.8    && < 0.3,
                         bytestring                    >= 0.10     && < 0.12,
-                        contra-tracer                 >= 0.1      && < 0.2,
-                        io-classes                    >= 0.3      && < 0.4,
-                        network-mux                   >= 0.2      && < 0.3,
-                        strict-stm                    >= 0.2      && < 0.3,
                         tdigest                       >= 0.2.1.1  && < 0.3,
                         text                          >= 1.2.4    && < 2.1,
 
@@ -35,6 +32,10 @@ library
                         -- functions, see
                         -- https://github.com/haskell/network/issues/484
                         network                       >= 3.1.2.2  && < 3.2,
+
+                        io-classes,
+                        network-mux                  ^>= 0.2,
+                        strict-stm,
 
   if os(windows)
     build-depends:      Win32                         >= 2.5.4.1  && < 3.0,

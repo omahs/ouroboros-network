@@ -27,6 +27,7 @@ module Test.Ouroboros.Network.Testnet.Simulation.Node
   , module PeerSelection
   ) where
 
+import           Control.Applicative (Alternative)
 import           Control.Concurrent.Class.MonadSTM.Strict
 import           Control.Monad (forM, replicateM, (>=>))
 import           Control.Monad.Class.MonadAsync
@@ -36,8 +37,8 @@ import           Control.Monad.Class.MonadSay
 import           Control.Monad.Class.MonadST (MonadST)
 import           Control.Monad.Class.MonadThrow (MonadCatch, MonadEvaluate,
                      MonadMask, MonadThrow, SomeException)
-import           Control.Monad.Class.MonadTime (DiffTime, MonadTime)
-import           Control.Monad.Class.MonadTimer (MonadTimer, threadDelay)
+import           Control.Monad.Class.MonadTime.SI (DiffTime, MonadTime)
+import           Control.Monad.Class.MonadTimer.SI (MonadDelay, MonadTimer, threadDelay)
 import           Control.Monad.Fix (MonadFix)
 import           Control.Tracer (Tracer (..), contramap, nullTracer, traceWith)
 
@@ -553,7 +554,9 @@ data DiffusionSimulationTrace
 
 -- | Run an arbitrary topology
 diffusionSimulation
-  :: forall m. ( MonadAsync       m
+  :: forall m. ( Alternative (STM m)
+               , MonadAsync       m
+               , MonadDelay       m
                , MonadFix         m
                , MonadFork        m
                , MonadSay         m
