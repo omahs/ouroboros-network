@@ -58,6 +58,10 @@ https://keepachangelog.com/en/1.1.0/, adapted to our plan explained above.
 
 ## Circa 2022-12-19
 
+### Added
+
+- Conway to `CardanoEras`.
+
 ### Changed
 
 - The `protocolInfoTPraosShelleyBased` and `protocolInfoPraosShelleyBased`
