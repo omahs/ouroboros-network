@@ -182,7 +182,7 @@ data CardanoConfig = CardanoConfig {
   , conwayGenesisPath    :: FilePath
 
     -- | @Test*HardForkAtEpoch@ for each Shelley era
-  , hardForkTriggers     :: NP STA (CardanoShelleyEras StandardCrypto)
+  , hardForkTriggers     :: NP ShelleyTransitionArguments (CardanoShelleyEras StandardCrypto)
   }
 
 instance AdjustFilePaths CardanoConfig where
@@ -204,12 +204,12 @@ instance AdjustFilePaths CardanoConfig where
           }
 
 -- | Shelley transition arguments
-data STA :: Type -> Type where
-  STA ::
+data ShelleyTransitionArguments :: Type -> Type where
+  ShelleyTransitionArguments ::
        -- so far, the context is either () or AlonzoGenesis or ConwayGenesis
        ((SL.AlonzoGenesis, SL.ConwayGenesis StandardCrypto) -> Core.TranslationContext era)
     -> TriggerHardFork
-    -> STA (ShelleyBlock proto era)
+    -> ShelleyTransitionArguments (ShelleyBlock proto era)
 
 instance Aeson.FromJSON CardanoConfig where
   parseJSON = Aeson.withObject "CardanoConfigFile" $ \v -> do
@@ -235,9 +235,9 @@ instance Aeson.FromJSON CardanoConfig where
                Aeson.Key
             -> Word16   -- ^ the argument to 'TriggerHardForkAtVersion'
             -> ((SL.AlonzoGenesis, SL.ConwayGenesis StandardCrypto) -> Core.TranslationContext era)
-            -> (Aeson.Parser :.: STA) (ShelleyBlock proto era)
+            -> (Aeson.Parser :.: ShelleyTransitionArguments) (ShelleyBlock proto era)
           f nm majProtVer ctxt = Comp $
-              fmap (STA ctxt)
+              fmap (ShelleyTransitionArguments ctxt)
             $           (fmap TriggerHardForkAtEpoch <$> (v Aeson..:? nm))
               Aeson..!= (TriggerHardForkAtVersion majProtVer)
 
@@ -250,11 +250,11 @@ instance Aeson.FromJSON CardanoConfig where
         f "TestConwayHardForkAtEpoch"  8 snd        :*
         Nil
 
-      let isBad :: NP STA xs -> Bool
+      let isBad :: NP ShelleyTransitionArguments xs -> Bool
           isBad = \case
-            STA _ TriggerHardForkAtVersion{} :* STA _ TriggerHardForkAtEpoch{} :* _ -> True
+            ShelleyTransitionArguments _ TriggerHardForkAtVersion{} :* ShelleyTransitionArguments _ TriggerHardForkAtEpoch{} :* _ -> True
 
-            STA{} :* np -> isBad np
+            ShelleyTransitionArguments{} :* np -> isBad np
             Nil          -> False
       fmap (\() -> stas) $ when (isBad stas) $ fail $
            "if the Cardano config file sets a Test*HardForkEpoch,"
@@ -292,7 +292,7 @@ mkCardanoProtocolInfo ::
   -> SL.AlonzoGenesis
   -> SL.ConwayGenesis StandardCrypto
   -> Nonce
-  -> NP STA (CardanoShelleyEras StandardCrypto)
+  -> NP ShelleyTransitionArguments (CardanoShelleyEras StandardCrypto)
   -> ProtocolInfo IO (CardanoBlock StandardCrypto)
 mkCardanoProtocolInfo genesisByron signatureThreshold genesisShelley genesisAlonzo genesisConway initialNonce hardForkTriggers =
     protocolInfoCardano
@@ -333,12 +333,12 @@ mkCardanoProtocolInfo genesisByron signatureThreshold genesisShelley genesisAlon
           conwayProtVer                  = ProtVer 8 0
         , conwayMaxTxCapacityOverrides   = TxLimits.mkOverrides TxLimits.noOverridesMeasure
         }
-      (unSTA shelleyTransition)
-      (unSTA allegraTransition)
-      (unSTA maryTransition)
-      (unSTA alonzoTransition)
-      (unSTA babbageTransition)
-      (unSTA conwayTransition)
+      (unShelleyTransitionArguments shelleyTransition)
+      (unShelleyTransitionArguments allegraTransition)
+      (unShelleyTransitionArguments maryTransition)
+      (unShelleyTransitionArguments alonzoTransition)
+      (unShelleyTransitionArguments babbageTransition)
+      (unShelleyTransitionArguments conwayTransition)
   where
     ( shelleyTransition :*
       allegraTransition :*
@@ -349,8 +349,11 @@ mkCardanoProtocolInfo genesisByron signatureThreshold genesisShelley genesisAlon
       Nil
       ) = hardForkTriggers
 
-    unSTA :: STA (ShelleyBlock proto era) -> ProtocolTransitionParamsShelleyBased era
-    unSTA (STA ctxt trigger) = ProtocolTransitionParamsShelleyBased (ctxt (genesisAlonzo, genesisConway)) trigger
+    unShelleyTransitionArguments ::
+         ShelleyTransitionArguments (ShelleyBlock proto era)
+      -> ProtocolTransitionParamsShelleyBased era
+    unShelleyTransitionArguments (ShelleyTransitionArguments ctxt trigger) =
+      ProtocolTransitionParamsShelleyBased (ctxt (genesisAlonzo, genesisConway)) trigger
 
 castHeaderHash ::
      HeaderHash ByronBlock
