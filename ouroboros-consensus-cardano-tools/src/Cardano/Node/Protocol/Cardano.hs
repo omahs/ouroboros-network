@@ -230,7 +230,7 @@ mkSomeConsensusProtocolCardano NodeByronProtocolConfiguration {
             TxLimits.mkOverrides TxLimits.noOverridesMeasure
         }
         -- 'ProtocolTransitionParamsShelleyBased' specifies the parameters
-        -- needed to transition between two eras The comments below also apply
+        -- needed to transition between two eras. The comments below also apply
         -- for the Shelley -> Allegra and Allegra -> Mary hard forks.
         --
         -- FIXME: The sentence below seems incomplete
