@@ -660,7 +660,7 @@ protocolInfoCardano protocolParamsByron@ProtocolParamsByron {
           K protVerMary :*
           K protVerAlonzo :*
           K protVerBabbage :*
-          K protVerConway
+          K protVerConway :*
           Nil
 
     -- Byron
