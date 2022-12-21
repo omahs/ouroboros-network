@@ -61,6 +61,9 @@ https://keepachangelog.com/en/1.1.0/, adapted to our plan explained above.
 ### Added
 
 - Conway to `CardanoEras`.
+- `NodeToNodeV_11` and `NodeToClientV_15`, both of which enable Conway.
+- Conway-related type and pattern synonyms. Eg `StandardConway`, `HeaderConway`,
+  `GentTxConway`, etc.
 
 ### Changed
 
