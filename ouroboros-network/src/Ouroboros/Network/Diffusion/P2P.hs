@@ -1235,7 +1235,7 @@ nodeDataFlow :: NodeToNodeVersion
              -> NodeToNodeVersionData
              -> DataFlow
 nodeDataFlow v NodeToNodeVersionData { diffusionMode = InitiatorAndResponderDiffusionMode }
-                 | v >= NodeToNodeV_11
+                 | v >= NodeToNodeV_10
                  = Duplex
 nodeDataFlow _ _ = Unidirectional
 

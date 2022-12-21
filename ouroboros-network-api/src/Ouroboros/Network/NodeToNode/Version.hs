@@ -43,11 +43,11 @@ data NodeToNodeVersion
     | NodeToNodeV_10
     -- ^ Changes:
     --
-    -- * Enable @CardanoNodeToNodeVersion7@, i.e., Conway
+    -- * Enable full duplex connections.
     | NodeToNodeV_11
     -- ^ Changes:
     --
-    -- * Enable full duplex connections.
+    -- * Enable @CardanoNodeToNodeVersion7@, i.e., Conway
   deriving (Eq, Ord, Enum, Bounded, Show, Typeable)
 
 nodeToNodeVersionCodec :: CodecCBORTerm (Text, Maybe Int) NodeToNodeVersion
