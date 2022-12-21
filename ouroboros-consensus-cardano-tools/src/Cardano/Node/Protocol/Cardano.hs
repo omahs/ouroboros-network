@@ -233,8 +233,6 @@ mkSomeConsensusProtocolCardano NodeByronProtocolConfiguration {
         -- needed to transition between two eras. The comments below also apply
         -- for the Shelley -> Allegra and Allegra -> Mary hard forks.
         --
-        -- FIXME: The sentence below seems incomplete
-        --
         -- Byron to Shelley hard fork parameters
         Consensus.ProtocolTransitionParamsShelleyBased {
           transitionTranslationContext = (),
