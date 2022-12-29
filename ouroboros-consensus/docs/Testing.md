@@ -49,32 +49,6 @@ to any of the other statistics. The test suite for the library is minute, a mere
 
 ## The storage layer (`test-storage` test suite)
 
-The storage layer is a highly specialized database for storing the blockchain.
-It consists of five subcomponents:
-
-* An abstract file system API that smoothes out over some differences between
-  the file systems of different operating systems and, more importantly,
-  allows us to simulate all kinds of failures. This is then used for
-  stress-testing the other components below.
-* The _Immutable DB_ stores the part of the chain that is immutable, that is,
-  no longer subject to rollback. It is an append-only database, providing
-  efficient access to the chain.
-* The _Volatile DB_ stores the part of the chain near its tip. This doesn't
-  really store a _chain_ as such, but rather simply a collection of blocks
-  from which we might _construct_ a chain.
-* The _Ledger DB_ stores the state of the ledger. On disk it only stores
-  snapshots of the ledger state that correspond to immutable blocks; in memory,
-  it stores various snapshots of the ledger state corresponding to blocks near
-  the current tip of the chain, and an efficient way of computing any ledger
-  state for the last `k` blocks of the chain.
-* The _Chain DB_ finally combines all of these components. It makes decisions
-  about which chains to adopt (chain selection), switches to forks when needed,
-  deals with clock skew, and provides various interfaces to the rest of the
-  consensus layer for things like finding out which blocks were invalid
-  (so we can disconnect from the clients who sent them), cursors that follow
-  the tip of the chain (so that we can inform our downstream peers of how
-  our chain evolves), etc. In many ways, the chain DB is the component that
-  is responsible for "consensus": deciding which chain is the one true chain.
 
 ### The file system abstraction (`Test.Ouroboros.Storage.FS.StateMachine`)
 
