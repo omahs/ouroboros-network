@@ -27,8 +27,8 @@ import           Ouroboros.Consensus.Protocol.Praos (Praos, PraosParams (..),
                      praosCheckCanForge)
 import           Ouroboros.Consensus.Protocol.Praos.Common
                      (PraosCanBeLeader (praosCanBeLeaderOpCert))
-import           Ouroboros.Consensus.Shelley.Eras (BabbageEra, EraCrypto,
-                     ShelleyBasedEra (shelleyBasedEraName))
+import           Ouroboros.Consensus.Shelley.Eras (BabbageEra, ConwayEra,
+                     EraCrypto, ShelleyBasedEra (shelleyBasedEraName))
 import           Ouroboros.Consensus.Shelley.Ledger (ShelleyBlock,
                      ShelleyCompatible, forgeShelleyBlock)
 import           Ouroboros.Consensus.Shelley.Node
@@ -119,4 +119,10 @@ praosSharedBlockForging
 data ProtocolParamsBabbage c = ProtocolParamsBabbage {
     babbageProtVer                :: SL.ProtVer
   , babbageMaxTxCapacityOverrides :: TxLimits.Overrides (ShelleyBlock (Praos c) (BabbageEra c))
+  }
+
+-- | Parameters needed to run Conway
+data ProtocolParamsConway c = ProtocolParamsConway {
+    conwayProtVer                :: SL.ProtVer
+  , conwayMaxTxCapacityOverrides :: TxLimits.Overrides (ShelleyBlock (Praos c) (ConwayEra c))
   }
