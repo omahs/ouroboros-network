@@ -84,29 +84,6 @@ Of course, these (and all other) property tests are QuickCheck based and so
 generate random indices, random slot numbers, etc., and come with a proper
 shrinker.
 
-#### Model based testing (`Test.Ouroboros.Storage.ImmutableDB.StateMachine`)
-
-This is the main test for the immutable DB. As in any model based, we have a
-set of commands, which in this case corresponds to things like
-
-* Read a block, or information about a block, from the DB
-* Append a block to the database
-* Stream blocks from the DB
-* etc.
-
-In addition, there are commands that model disk corruption, so that we can test
-that the DB does the right thing in the presence of disk failure. The consensus
-storage layer has a simple policy for disk corruption: _it is always sound to
-truncate the chain_; after all, we can always get the remaining blocks from
-other peers again. This means that in the models, disk corruption is simply
-modelled as truncation of the chain; the real thing of course needs to be able
-_detect_ the corruption, minimize quite how far we truncate, etc.
-
-The model (defined in `Test.Ouroboros.Storage.ImmutableDB.Model`) is essentially
-just a mapping from slots to blocks. It needs to maintain a _bit_ more state
-than that, in order to deal with stateful API components such as database
-cursors, but that's basically it.
-
 ## Miscellanous tests (`test-consensus` test suite)
 
 This test suite contains tests for a number of components of the rest of the
