@@ -356,24 +356,6 @@ and then verify that it matches the model.
 
 **Stats.** The implementation is 600 loc; the tests are 350 loc.
 
-### Mempool (`Test.Consensus.Mempool`)
-
-The mempool collects transactions from down-stream nodes, makes them available
-to up-stream nodes, and of course provides the pool of transactions that we use
-when forging blocks.
-
-The tests for the mempool are not model based, but instead check various
-simple properties and invariants:
-
-* After adding valid transactions to the mempool, they can be retrieved.
-* Adding invalid transactions from the mempool will report them as invalid,
-  and they are not added.
-* Transactions cannot be retrieved after they are removed.
-* The mempool capacity is not exceeded
-* etc.
-
-**Stats.** The implementation is 1400 loc, the tests are 1100 loc.
-
 ### The hard fork combinator: time infrastructure
 
 One of the responsibilities of the HFC is to offer time conversions (slot to
