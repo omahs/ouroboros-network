@@ -81,3 +81,37 @@ This graph depicts the relationship between the various `xxx-consensus-yyy` pack
     * __[Generators](ouroboros-consensus-mock-test/Test-Consensus-Ledger-Mock-Generators.html)__ provides various orphan `Arbitrary` instances
 
 * __db-analyser__: A command-line tool for offline analysis of the consensus database
+
+==== Consensus tests
+
+The main consensus tests are the consensus layer's sophisticated tests. They are
+"system level" tests, in which we set up a mock network of nodes, where we can
+simulate things like nodes joining late, network message delay, etc. We then
+have these nodes run the full protocol, exchanging blocks, doing chain
+selection, etc. Finally we verify that the nodes can reach consensus. We have
+some generic infrastructure for doing all of this, and then have specific tests
+for each of the protocols/ledgers we support.
+
+In a way, these are the most important tests we have, as they are testing
+properties of the system as a whole. Of course, that also means that if
+something goes wrong, debugging these tests can be difficult, and it would be
+better to have such problems caught by the other, more fine-grained, tests.
+
+We run these tests for
+
+* A mock ledger (containing bare bones UTxO style transactions) using a variety
+  of consensus protocols: BFT, PBFT, Praos, and a version of Praos where we
+  override the leader schedule. See [this directory](https://github.com/input-output-hk/ouroboros-network/tree/master/ouroboros-consensus-mock-test/test/Test/ThreadNet).
+* Byron/PBFT. See
+  __[Test.ThreadNet.Byron](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-byron-test/test/Test/ThreadNet/Byron.hs)__.
+* DualByron. See
+  __[Test.ThreadNet.DualByron](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-byron-test/test/Test/ThreadNet/DualByron.hs)__.
+* Shelley/TPraos. See
+  __[Test.ThreadNet.Shelley](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-shelley-test/test/Test/ThreadNet/Shelley.hs)__.
+* The hard fork combinator transitioning from a mock ledger @A@ to a mock ledger @B@;
+  these mock ledgers are absolutely minimal ledgers: the only transaction supported
+  on the @A@ ledger is "initiate transition to @B@", and the @B@ ledger can only contain
+  blocks with a header only, no body at all. TODO: where are these?
+* @HardForkBlock '[Byron, Shelley]@: the hard fork combinator instantiated with
+  the Byron and Shelley ledgers, running @PBFT@ before the transition and
+  @TPraos@ after. TODO: where are these?
