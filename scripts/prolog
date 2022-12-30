@@ -218,7 +218,7 @@ We run these tests for
 * The hard fork combinator transitioning from a mock ledger @A@ to a mock ledger @B@;
   these mock ledgers are absolutely minimal ledgers: the only transaction supported
   on the @A@ ledger is "initiate transition to @B@", and the @B@ ledger can only contain
-  blocks with a header only, no body at all. TODO: where are these?
+  blocks with a header only, no body at all. TODO: where are these? (maybe in Test.Consensus.HardFork.Combinator)
 * @HardForkBlock '[Byron, Shelley]@: the hard fork combinator instantiated with
   the Byron and Shelley ledgers, running @PBFT@ before the transition and
   @TPraos@ after. TODO: where are these?
