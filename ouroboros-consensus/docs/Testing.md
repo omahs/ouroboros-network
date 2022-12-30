@@ -392,22 +392,6 @@ them to be thrown based on the mock state changes (exceptions such as
 
 **Stats.** The implementation is 1100 loc, the tests are 750 loc.
 
-### Local state query server (`Test.Consensus.MiniProtocol.LocalStateQuery.Server`)
-
-The local state query protocol allows clients such as wallets to query the state
-of the ledger at any point within `k` blocks from the tip. The test for this is
-quite minimal at present: it prepopulates a ledger DB with a bunch of blocks,
-and then verifies that requesting the ledger tip corresponding to the these
-blocks gives the right answers, and that asking for blocks not on the chain
-results in the right error message.
-
-Note that the query protocol is abstract in the ledger (like everything else
-in the consensus layer, of course), and the query _language_ we offer (the
-kinds of queries that can be asked) of course depends on the ledger. The tests
-use a mock ledger for this purpose.
-
-**Stats.** The implementation is 75 loc, the tests are 250 loc.
-
 ### The hard fork combinator: time infrastructure
 
 One of the responsibilities of the HFC is to offer time conversions (slot to
