@@ -15,6 +15,7 @@
 -- Note that the query protocol is abstract in the ledger, and the query
 -- /language/ we offer (the kinds of queries that can be asked) of course
 -- depends on the ledger. The tests use a mock ledger for this purpose.
+--
 module Test.Consensus.MiniProtocol.LocalStateQuery.Server (tests) where
 
 import           Control.Tracer (nullTracer)

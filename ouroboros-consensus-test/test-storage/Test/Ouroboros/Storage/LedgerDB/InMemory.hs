@@ -24,6 +24,7 @@
 --   the operations (add a block, switch to a fork, etc.)
 -- * The maximum rollback supported is always @k@ (unless we are near genesis)
 -- * etc.
+--
 module Test.Ouroboros.Storage.LedgerDB.InMemory (tests) where
 
 import           Codec.CBOR.FlatTerm (FlatTerm, TermToken (..), fromFlatTerm,

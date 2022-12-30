@@ -26,6 +26,7 @@
 -- verify that predictions about the "future" also work as correctly (including
 -- that the conversions say "outside range" if and only if the model expects
 -- them to be).
+--
 module Test.Consensus.HardFork.History (tests) where
 
 import           Control.Exception (throw)

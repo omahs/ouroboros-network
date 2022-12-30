@@ -33,6 +33,7 @@
 --   that is responsible for "consensus": deciding which chain is the one true
 --   chain. 'Ouroboros.Consensus.Storage.ChainDB.API.ChainDB' defines the chain
 --   DB API.
+--
 module Ouroboros.Consensus.Storage.ChainDB (
     module Ouroboros.Consensus.Storage.ChainDB.API
   , module Ouroboros.Consensus.Storage.ChainDB.Impl

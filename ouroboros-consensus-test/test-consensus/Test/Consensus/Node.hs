@@ -19,6 +19,7 @@
 --
 -- This module contains a bunch of unit tests to make sure that these locks and
 -- markers are created correctly and behave as expected.
+--
 module Test.Consensus.Node (tests) where
 
 import           Data.Bifunctor (second)
