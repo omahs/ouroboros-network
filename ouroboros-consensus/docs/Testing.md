@@ -310,27 +310,6 @@ up resources as threads terminate or crash.
 
 **Stats.** The implementation is 1200 loc, the tests are 600 loc.
 
-### Locking (`Test.Consensus.Util.MonadSTM.RAWLock`)
-
-The volatile DB uses an abstraction we call a `RAWLock`, a lock that allows
-the following combinations of readers, appender and writer:
-
-```
-         │ Reader │ Appender │ Writer │
-─────────┼────────┼──────────┼────────┤
-Reader   │   V    │     V    │    X   │
-Appender │░░░░░░░░│     X    │    X   │
-Writer   │░░░░░░░░│░░░░░░░░░░│    X   │
-```
-
-It improves concurrent access. In the test we generate lots of threads, some
-readers, some appenders, some writers, each concurrently accessing
-some data protected by the lock. We then record the access pattern; the test
-would fail if at any point it would see a forbidden combination (for example,
-a writer and a reader both having access at the same time).
-
-**Stats.** The implementation is 500 loc, the tests are 250 loc.
-
 ### The hard fork combinator: time infrastructure
 
 One of the responsibilities of the HFC is to offer time conversions (slot to
