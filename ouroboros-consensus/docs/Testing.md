@@ -290,26 +290,6 @@ packages.some-new-package.components.tests.test.testFlags =
 This test suite contains tests for a number of components of the rest of the
 consensus layer.
 
-### Resource registry (`Test.Consensus.ResourceRegistry`)
-
-The resource registry is a component throughout the consensus layer that helps
-us keep track of resources and makes sure that all resources that we allocate
-are eventually also deallocated.
-
-The tests for the registry are model based. The model records which resources
-we expect to be alive and which we expect to have been deallocated. The only
-resources we are modelling here are threads; the commands we then execute are
-
-* Fork a thread from some other thread
-* Terminate a thread
-* Have a thread crash
-* Collect all live threads
-
-We then verify that the resource registry behaves like the model, cleaning
-up resources as threads terminate or crash.
-
-**Stats.** The implementation is 1200 loc, the tests are 600 loc.
-
 ### The hard fork combinator: time infrastructure
 
 One of the responsibilities of the HFC is to offer time conversions (slot to
