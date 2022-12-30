@@ -123,46 +123,6 @@ of "files", where every file is modelled simply as a list of blocks and some
 block metadata. The reason that this is slightly more detailed than one might
 hope (just a set of blocks) is that we need the additional detail to be able
 to predict the effects of disk corruption.
-
-**Stats.** The implementation is 1600 loc, the tests are 1300 loc.
-
-### The Ledger DB (`Test.Ouroboros.Storage.LedgerDB`)
-
-The ledger DB consists of two subcomponents: an in-memory component, which is
-pure Haskell (no IO anywhere) and so can be tested using normal property tests,
-and the on-disk component, which is tested with a model based test.
-
-**Stats.** The implementation is 1400 loc, the tests are 1600 loc.
-
-#### In-memory (`Test.Ouroboros.Storage.LedgerDB.InMemory`)
-
-The in-memory component of the ledger DB is a bit tricky: it stores only a few
-snapshots of the ledger state, in order to reduce memory footprint, but must
-nonetheless be able to construct any ledger state (within `k` blocks from the
-chain tip) efficiently. The properties we are verify here are various
-invariants of this data type, things such as
-
-* Rolling back and then reapplying the same blocks is an identity operation
-  (provided the rollback is not too far)
-* The shape of the datatype (where we store snapshots and how many we store)
-  always matches the policy set by the user, and is invariant under any of
-  the operations (add a block, switch to a fork, etc.)
-* The maximum rollback supported is always `k` (unless we are near genesis)
-* etc.
-
-#### On-disk (`Test.Ouroboros.Storage.LedgerDB.OnDisk`)
-
-This is a model based test. The commands here are
-
-* Get the current ledger state
-* Push a block, or switch to a fork
-* Write a snapshot to disk
-* Restore the ledger DB from the snapshots on disk
-* Model disk corruption
-
-The model here is satifyingly simple: just a map from blocks to their
-corresponding ledger state.
-
 ## Miscellanous tests (`test-consensus` test suite)
 
 This test suite contains tests for a number of components of the rest of the
