@@ -82,6 +82,113 @@ This graph depicts the relationship between the various `xxx-consensus-yyy` pack
 
 * __db-analyser__: A command-line tool for offline analysis of the consensus database
 
+=== Testing in the consensus layer
+
+The vast majority of the tests in the consensus layer are QuickCheck property
+tests, and many of these are model based. There are only a handful of unit
+tests. The consensus layer is an intricate piece of software with lots of
+components, which we set at virtually every level of granularity. Below we give
+an overview of the tests that we do per component. For the detailed listing,
+please refer to the various test suites within the [repository](https://github.com/input-output-hk/ouroboros-network/).
+
+* __[test-infra\/Main.hs](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-infra/Main.hs)__
+  provides tests for the infrastructure used for running consensus-related tests.
+
+* __[test-storage\/Main.hs](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-storage/Main.hs)__
+  provides tests for the storage layer used by Consensus.
+
+    * The file system abstraction tests can be found in
+      __[Test.Ouroboros.Storage.FS.StateMachine](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-storage/Test/Ouroboros/Storage/FS/StateMachine.hs)__.
+
+    * The immutable DB tests can be found in
+      __[Test.Ouroboros.Storage.ImmutableDB](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-storage/Test/Ouroboros/Storage/ImmutableDB.hs)__.
+
+        * The primary index test can be found in
+          __[Test.Ouroboros.Storage.ImmutableDB.Primary](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-storage/Test/Ouroboros/Storage/ImmutableDB/Primary.hs)__.
+
+        * The model-based tests for the immutable DB can be found in
+          __[Test.Ouroboros.Storage.ImmutableDB.StateMachine](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-storage/Test/Ouroboros/Storage/ImmutableDB/StateMachine.hs)__.
+
+    * The tests for the volatile DB can be found in
+      __[Test.Ouroboros.Storage.VolatileDB.StateMachine](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-storage/Test/Ouroboros/Storage/VolatileDB/StateMachine.hs)__.
+
+    * The ledger DB tests can be found in
+      __[Test.Ouroboros.Storage.LedgerDB](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-storage/Test/Ouroboros/Storage/LedgerDB.hs)__:
+
+        * The in-memory ledger DB tests can be found in
+          __[Test.Ouroboros.Storage.LedgerDB.InMemory](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-storage/Test/Ouroboros/Storage/LedgerDB/InMemory.hs)__.
+
+        * The on-disk ledger DB tests can be found in
+          __[Test.Ouroboros.Storage.LedgerDB.OnDisk](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-storage/Test/Ouroboros/Storage/LedgerDB/OnDisk.hs)__.
+
+    * The tests for the chain DB can be found in
+      __[Test.Ouroboros.Storage.ChainDB](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-storage/Test/Ouroboros/Storage/ChainDB.hs)__. The tests include:
+
+        * The tests for the garbage collection schedule can be found in
+          __[Test.Ouroboros.Storage.ChainDB.GcSchedule](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-storage/Test/Ouroboros/Storage/ChainDB/GcSchedule.hs)__.
+
+
+        * The tests for the chain DB iterator can be found in
+          __[Test.Ouroboros.Storage.ChainDB.Iterator](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-storage/Test/Ouroboros/Storage/ChainDB/Iterator.hs)__.
+
+        * The tests of properties of the chain DB model can be found in
+          __[Test.Ouroboros.Storage.ChainDB.Model.Test](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-storage/Test/Ouroboros/Storage/ChainDB/Model/Test.hs)__.
+
+        * The main tests for the chain DB can be found in
+          __[Test.Ouroboros.Storage.ChainDB.StateMachine](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-storage/Test/Ouroboros/Storage/ChainDB/StateMachine.hs)__.
+
+* Golden tests: our golden tests infrastructure lives in
+  __[Test.Util.Serialisation.Golden](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/src/Test/Util/Serialisation/Golden.hs)__.
+  Golden tests are specific to each era:
+
+    * [Test.Consensus.Byron.Golden](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-byron-test/test/Test/Consensus/Byron/Golden.hs)
+
+    * [Test.Consensus.Cardano.Golden](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-cardano-test/test/Test/Consensus/Cardano/Golden.hs)
+
+    * [Test.Consensus.Shelley.Golden](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-shelley-test/test/Test/Consensus/Shelley/Golden.hs)
+
+* Miscellanous tests (@test-consensus@ test suite)
+
+    * The tests for the resource registry can be found in
+      __[Test.Consensus.ResourceRegistry](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-consensus/Test/Consensus/ResourceRegistry.hs)__.
+
+    * The tests for the RAW lock mechanism we use can be found in
+      __[Test.Consensus.Util.MonadSTM.RAWLock](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-consensus/Test/Consensus/Util/MonadSTM/RAWLock.hs)__.
+
+    * The tests for the computation of blockchain time can be found in
+      __[Test.Consensus.BlockchainTime.Simple](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-consensus/Test/Consensus/BlockchainTime/Simple.hs)__.
+
+    * The tests for the mempool can be found in
+      __[Test.Consensus.Mempool](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-consensus/Test/Consensus/Mempool.hs)__.
+
+    * The tests for the chain sync client can be found in
+      __[Test.Consensus.MiniProtocol.ChainSync.Client](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-consensus/Test/Consensus/MiniProtocol/ChainSync/Client.hs)__.
+
+    * The tests for the local state query server can be found in
+      __[Test.Consensus.MiniProtocol.LocalStateQuery.Server](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-consensus/Test/Consensus/MiniProtocol/LocalStateQuery/Server.hs)__.
+
+    * The tests for versioned serialisation can be found in
+      __[Test.Consensus.Util.Versioned](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-consensus/Test/Consensus/Util/Versioned.hs)__.
+
+    * The tests for the DB marker and DB lock can be found in
+      __[Test.Consensus.Node](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-consensus/Test/Consensus/Node.hs)__.
+
+* The hard fork combinator, time infrastructure: One of the responsibilities of
+  the HFC is to offer time conversions (slot to epoch, wall clock to slot, etc.)
+  across era transitions (which might change parameters such as the slot length
+  and the epoch size). It does this by constructing a "summary" of the current
+  state of the chain, basically recording what the various slot lengths and
+  epoch sizes have been so far, and how far ahead we can look (the so-called
+  "safe zone": if the transition to the next era is not yet known, there must
+  exist a limited period after the ledger tip in which we can still time
+  conversions).
+
+    * The tests for the hard fork summary can be found in
+      __[Test.Consensus.HardFork.Summary](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-consensus/Test/Consensus/HardFork/Summary.hs)__.
+
+    * The tests for the hard fork history can be found in
+      __[Test.Consensus.HardFork.History](https://github.com/input-output-hk/ouroboros-network/blob/master/ouroboros-consensus-test/test-consensus/Test/Consensus/HardFork/History.hs)__.
+
 ==== Consensus tests
 
 The main consensus tests are the consensus layer's sophisticated tests. They are
