@@ -449,14 +449,3 @@ which we can still time conversions).
 **Stats.** The HFC history implementation (not the combinator) is 1300 loc;
 the tests are also 1300 loc.
 
-#### Summary (`Test.Consensus.HardFork.Summary`)
-
-This module verifies the property that _no matter how the summary is constructed_,
-as long as it satisfies its invariants, we should have roundtrip properties:
-
-* Converting time to a slot and then back to time should be an identity
-  (modulo the time spent in that slot)
-* Converting a slot to time and then back should be an identity
-* Converting slot to an epoch and then back to a slot should be an identity
-  (modulo the time spent in that epoch)
-* Converting an epoch to a slot and then back should be an identity.
