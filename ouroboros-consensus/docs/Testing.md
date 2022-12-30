@@ -416,24 +416,6 @@ provide works as expected. There is not much here.
 
 **Stats.** The implementation is 120 loc, the tests are 110 loc.
 
-### DB marker and DB lock (`Test.Consensus.Node`)
-
-When the consensus layer is integrated into the main node, it provides two
-safe guards to avoid data loss and/or corruption:
-
-* When the database is opened, it locks the database so that there can be no
-  other processes trying to access it at the same time.
-* When we create a database directory, we place a "magic marker" in that
-  directory. This allows us to distinguish the database directory from other
-  directories, and avoids that we would try to "truncate" a "chain" in a
-  directory which doesn't contain a DB at all (due to a misconfiguration),
-  thereby potentially deleting a user's files.
-
-This modules contains a bunch of unit tests to make sure that these locks and
-markers are created correctly and behave as expected.
-
-**Stats.** The implementation of the db lock and marker is 200 loc; the tests
-are 300 loc.
 
 ### The hard fork combinator: time infrastructure
 
