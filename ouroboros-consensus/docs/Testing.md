@@ -408,15 +408,6 @@ use a mock ledger for this purpose.
 
 **Stats.** The implementation is 75 loc, the tests are 250 loc.
 
-### Versioned serialization (`Test.Consensus.Util.Versioned`)
-
-Some of our serialization code supports some limited migration capability. This
-module contains a few unit tests that check that the migration infrastructure we
-provide works as expected. There is not much here.
-
-**Stats.** The implementation is 120 loc, the tests are 110 loc.
-
-
 ### The hard fork combinator: time infrastructure
 
 One of the responsibilities of the HFC is to offer time conversions (slot to

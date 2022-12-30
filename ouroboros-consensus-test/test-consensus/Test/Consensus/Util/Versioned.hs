@@ -2,6 +2,11 @@
 {-# LANGUAGE DeriveGeneric         #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE RankNTypes            #-}
+-- | Tests for versioned serialisation.
+--
+-- Some of our serialization code supports some limited migration capability.
+-- This module contains a few unit tests that check that the migration
+-- infrastructure we provide works as expected.
 module Test.Consensus.Util.Versioned (tests) where
 
 import           Codec.CBOR.Read (deserialiseFromBytes)
