@@ -46,44 +46,6 @@ category (see below).
 Since this library is used throughout all tests, I've not added that line count
 to any of the other statistics. The test suite for the library is minute, a mere
 140 loc.
-
-## The storage layer (`test-storage` test suite)
-### The Immutable DB (`Test.Ouroboros.Storage.ImmutableDB`)
-
-The immutable DB bundles a (configurable) number of blocks into "chunk files".
-By design, chunk files are literally just the raw blocks, one after the other,
-so that we can efficiently support binary streaming of blocks.
-
-Every chunk file is accompanied by two indices: a _primary_ index that for
-each slot in the chunk file provides an offset into a _secondary_ index, which
-stores some derived information about the blocks in the chunk file for
-improved performance. Both the primary and the secondary index can be
-reconstructed from the chunk file itself.
-
-The tests for the immutable DB consist of a handful of unit tests, a set of
-property tests of the primary index, and then the main event, model based
-checking.
-
-**Stats.** The implementation is 6000 loc. The tests are 2700 loc.
-
-#### The primary index (`Test.Ouroboros.Storage.ImmutableDB.Primary`)
-
-This is a sequence of relatively simple property tests:
-
-* Writing a primary index to disk and then reading it again is an identity
-  operation (`prop_write_load`)
-* We can create new primary indices by appending new entries to them
-  (`prop_open_appendOffsets_load`)
-* We can truncate primary indices to particular slot.
-* Finding and reporting "filled slots" (not all slots in a chunk file, and
-  hence in a primary index, need to contain a block) works as expected.
-* Reconstructing a primary index from the same data results in the same
-  primary index.
-
-Of course, these (and all other) property tests are QuickCheck based and so
-generate random indices, random slot numbers, etc., and come with a proper
-shrinker.
-
 ## Miscellanous tests (`test-consensus` test suite)
 
 This test suite contains tests for a number of components of the rest of the
