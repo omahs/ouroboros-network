@@ -48,41 +48,6 @@ to any of the other statistics. The test suite for the library is minute, a mere
 140 loc.
 
 ## The storage layer (`test-storage` test suite)
-
-
-### The file system abstraction (`Test.Ouroboros.Storage.FS.StateMachine`)
-
-This is the first of the many model based tests we have. Edsko's blog post [An
-in-depth look at `quickcheck-state-machine`](http://www.well-typed.com/blog/2019/01/qsm-in-depth/)
-uses these tests of the file system abstraction as a case study and outlines the
-general approach. Like all of the model based tests, this consists of
-
-1. A set of commands
-2. A model against which we execute those commands
-3. An interpreter of those commands against the real implementation
-4. A generator and a shrinker for sequences of these commands
-5. A way to _label_ generated sequences so that we can verify that the tests
-   are covering what we think they should be covering.
-
-The sequences generated are then executed against both the model and the
-implementation, and the results are compared.
-
-In this particular case, the commands are file system operations such as
-create a directory, open a file, write some bytes, etc. The model is a very
-simple one: we simply model a file system as a tree of `ByteString`s (the raw
-bytes in the files). The goal of the model, of course, is not to provide one that
-mirrors the low-level details of the real implementation, but rather one that
-abstracts over such details and provides a _specification_.
-
-The file system abstraction however is a bit of an unusual test in that this is
-really "reverse model testing": the tests compare the model to the real file
-system, but we are of course not developing a file system. Instead, the tests
-serve to make sure that we got the model right, which we can then use
-in the tests of the rest of the consensus layer.
-
-**Stats.** The implementation, including the OS specific parts, is 1200 loc.
-The tests are 1500 loc.
-
 ### The Immutable DB (`Test.Ouroboros.Storage.ImmutableDB`)
 
 The immutable DB bundles a (configurable) number of blocks into "chunk files".
