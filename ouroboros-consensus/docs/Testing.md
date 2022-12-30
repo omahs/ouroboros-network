@@ -460,18 +460,3 @@ as long as it satisfies its invariants, we should have roundtrip properties:
 * Converting slot to an epoch and then back to a slot should be an identity
   (modulo the time spent in that epoch)
 * Converting an epoch to a slot and then back should be an identity.
-
-#### History (`Test.Consensus.HardFork.History`)
-
-This is the more interesting test of the hard fork history. We construct a mock
-chain, consisting of events (events are roughly, but not quite, "blocks"). For
-every event we record its slot number, epoch number, wall clock, etc. Since we
-are constructing this chain as a whole, from genesis to its tip, constructing
-these events is trivial. We then split this chain in half, and construct a
-`Summary` from the first half. We then use that summary to do conversions for
-any event on the chain. Since every event records all information, we can
-easily verify whether the answers we are getting back are correct. Moreover,
-since the summary is constructed from only the first part of the chain,
-but is used to do conversions across the entire chain, we verify that
-predictions about the "future" also work as correctly (including that the
-conversions say "outside range" if and only if the model expects them to be).
