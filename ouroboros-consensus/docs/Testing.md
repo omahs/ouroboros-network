@@ -107,22 +107,6 @@ just a mapping from slots to blocks. It needs to maintain a _bit_ more state
 than that, in order to deal with stateful API components such as database
 cursors, but that's basically it.
 
-### The Volatile DB (`Test.Ouroboros.Storage.VolatileDB.StateMachine`)
-
-The set of commands for the volatile DB is similar to the immutable DB, commands
-such as
-
-* Get a block or information about a block
-* Add a block
-* Simulate disk corruption
-
-in addition to a few commands that are supported only by the volatile DB,
-such as "find all blocks with the given predecessor" (used by chain selection).
-The model (defined in `Test.Ouroboros.Storage.VolatileDB.Model`) is a list
-of "files", where every file is modelled simply as a list of blocks and some
-block metadata. The reason that this is slightly more detailed than one might
-hope (just a set of blocks) is that we need the additional detail to be able
-to predict the effects of disk corruption.
 ## Miscellanous tests (`test-consensus` test suite)
 
 This test suite contains tests for a number of components of the rest of the
