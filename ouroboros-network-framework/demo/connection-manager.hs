@@ -63,6 +63,8 @@ import qualified Ouroboros.Network.InboundGovernor.ControlChannel as Server
 import           Ouroboros.Network.IOManager
 import           Ouroboros.Network.Mux
 import           Ouroboros.Network.MuxMode
+import           Ouroboros.Network.PeerSelection.PeerSharing.Type
+                     (PeerSharing (..))
 import           Ouroboros.Network.Protocol.Handshake
 import           Ouroboros.Network.Protocol.Handshake.Codec
                      (timeLimitsHandshake)
@@ -207,6 +209,7 @@ withBidirectionalConnectionManager snocket socket
                                    k = do
     mainThreadId <- myThreadId
     inbgovControlChannel      <- Server.newControlChannel
+    outgovControlChannel      <- Server.newControlChannel
     -- as in the 'withInitiatorOnlyConnectionManager' we use a `StrictTVar` to
     -- pass list of requests, but since we are also interested in the results we
     -- need to have multable cells to pass the accumulators around.
@@ -272,6 +275,8 @@ withBidirectionalConnectionManager snocket socket
                     serverConnectionManager = connectionManager,
                     serverInboundIdleTimeout = Just protocolIdleTimeout,
                     serverControlChannel = inbgovControlChannel,
+                    governorControlChannel = outgovControlChannel,
+                    getPeerSharing = \_ -> NoPeerSharing,
                     serverObservableStateVar = observableStateVar
                   }
               )

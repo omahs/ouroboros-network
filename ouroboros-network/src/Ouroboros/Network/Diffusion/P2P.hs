@@ -83,6 +83,8 @@ import           Ouroboros.Network.Diffusion.Utils
 import           Ouroboros.Network.ExitPolicy
 import           Ouroboros.Network.InboundGovernor (InboundGovernorTrace (..),
                      RemoteTransitionTrace)
+import           Ouroboros.Network.InboundGovernor.ControlChannel
+                     (ControlChannel (..), GovernorControlChannel)
 import           Ouroboros.Network.IOManager
 import           Ouroboros.Network.Mux hiding (MiniProtocol (..))
 import           Ouroboros.Network.MuxMode
@@ -101,7 +103,8 @@ import           Ouroboros.Network.PeerSelection.Governor.Types
 import           Ouroboros.Network.PeerSelection.LedgerPeers
                      (UseLedgerAfter (..), withLedgerPeers)
 import           Ouroboros.Network.PeerSelection.PeerMetric (PeerMetrics)
-import           Ouroboros.Network.PeerSelection.PeerSharing.Type (PeerSharing)
+import           Ouroboros.Network.PeerSelection.PeerSharing.Type
+                     (PeerSharing (..))
 import           Ouroboros.Network.PeerSelection.PeerStateActions
                      (PeerConnectionHandle, PeerSelectionActionsTrace (..),
                      PeerStateActionsArguments (..), pchPeerSharing,
@@ -340,6 +343,7 @@ data ConnectionManagerDataInMode peerAddr versionData m a (mode :: MuxMode) wher
 
     CMDInInitiatorResponderMode
       :: ServerControlChannel InitiatorResponderMode peerAddr versionData ByteString  m a ()
+      -> GovernorControlChannel peerAddr m
       -> StrictTVar m Server.InboundGovernorObservableState
       -> ConnectionManagerDataInMode peerAddr versionData m a InitiatorResponderMode
 
@@ -710,6 +714,7 @@ runM Interfaces
               Just $ withLocalSocket tracer diNtcGetFileDescriptor diNtcSnocket localAddr
                        $ \localSocket -> do
                 localControlChannel <- Server.newControlChannel
+                localGovControlChannel <- Server.newControlChannel
                 localServerStateVar <- Server.newObservableStateVar ntcInbgovRng
 
                 let localConnectionLimits = AcceptedConnectionsLimit maxBound maxBound 0
@@ -779,6 +784,11 @@ runM Interfaces
                             serverConnectionLimits      = localConnectionLimits,
                             serverConnectionManager     = localConnectionManager,
                             serverControlChannel        = localControlChannel,
+                            governorControlChannel      = localGovControlChannel,
+                            -- local thread does not start a Outbound Governor
+                            -- so it doesn't matter what we put here.
+                            -- 'NoPeerSharing' is set for all connections.
+                            getPeerSharing              = \_ -> NoPeerSharing,
                             serverObservableStateVar    = localServerStateVar
                           }) Async.wait
 
@@ -805,6 +815,7 @@ runM Interfaces
                   HasInitiatorResponder <$>
                     (CMDInInitiatorResponderMode
                       <$> Server.newControlChannel
+                      <*> Server.newControlChannel
                       <*> Server.newObservableStateVar ntnInbgovRng)
 
           -- RNGs used for picking random peers from the ledger and for
@@ -921,6 +932,7 @@ runM Interfaces
                       daPeerSharing
                       (pchPeerSharing diNtnPeerSharing)
                       (readTVar (getPeerSharingRegistry daPeerSharingRegistry))
+                      retry -- Will never receive inbound connections
                       peerStateActions
                       requestLedgerPeers
                       $ \localPeerSelectionActionsThread
@@ -965,7 +977,7 @@ runM Interfaces
               -- Run peer selection and the server.
               --
               HasInitiatorResponder
-                (CMDInInitiatorResponderMode controlChannel observableStateVar) -> do
+                (CMDInInitiatorResponderMode serverControlChannel governorControlChannel observableStateVar) -> do
                 let connectionManagerArguments
                       :: NodeToNodeConnectionManagerArguments
                           InitiatorResponderMode
@@ -1024,7 +1036,7 @@ runM Interfaces
                   connectionManagerArguments
                   connectionHandler
                   classifyHandleError
-                  (InResponderMode controlChannel)
+                  (InResponderMode serverControlChannel)
                   $ \(connectionManager
                         :: NodeToNodeConnectionManager
                              InitiatorResponderMode ntnFd ntnAddr ntnVersionData ntnVersion m a ()
@@ -1066,6 +1078,7 @@ runM Interfaces
                       daPeerSharing
                       (pchPeerSharing diNtnPeerSharing)
                       (readTVar (getPeerSharingRegistry daPeerSharingRegistry))
+                      (readMessage governorControlChannel)
                       peerStateActions
                       requestLedgerPeers
                       $ \localPeerRootProviderThread
@@ -1109,7 +1122,9 @@ runM Interfaces
                                   serverConnectionLimits      = daAcceptedConnectionsLimit,
                                   serverConnectionManager     = connectionManager,
                                   serverInboundIdleTimeout    = Just daProtocolIdleTimeout,
-                                  serverControlChannel        = controlChannel,
+                                  serverControlChannel        = serverControlChannel,
+                                  governorControlChannel      = governorControlChannel,
+                                  getPeerSharing              = diNtnPeerSharing,
                                   serverObservableStateVar    = observableStateVar
                                 })
                                 $ \serverThread ->

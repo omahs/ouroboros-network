@@ -357,7 +357,7 @@ withInitiatorOnlyConnectionManager name timeouts trTracer cmTracer snocket local
           cmAddressType = \_ -> Just IPv4Address,
           cmSnocket = snocket,
           cmConfigureSocket = \_ _ -> return (),
-          connectionDataFlow = \_ (DataFlowProtocolData df) -> df,
+          connectionDataFlow = \_ (DataFlowProtocolData df _) -> df,
           cmPrunePolicy = simplePrunePolicy,
           cmConnectionsLimits = acceptedConnLimit,
           cmTimeWaitTimeout = tTimeWaitTimeout timeouts,
@@ -515,6 +515,7 @@ withBidirectionalConnectionManager name timeouts
                                    acceptedConnLimit k = do
     mainThreadId <- myThreadId
     inbgovControlChannel      <- Server.newControlChannel
+    outbgovControlChannel      <- Server.newControlChannel
     -- we are not using the randomness
     observableStateVar        <- Server.newObservableStateVarFromSeed 0
     let muxTracer = WithName name `contramap` nullTracer -- mux tracer
@@ -535,7 +536,7 @@ withBidirectionalConnectionManager name timeouts
           cmConfigureSocket = \sock _ -> confSock sock,
           cmTimeWaitTimeout = tTimeWaitTimeout timeouts,
           cmOutboundIdleTimeout = tOutboundIdleTimeout timeouts,
-          connectionDataFlow = \_ (DataFlowProtocolData df) -> df,
+          connectionDataFlow = \_ (DataFlowProtocolData df _) -> df,
           cmPrunePolicy = simplePrunePolicy,
           cmConnectionsLimits = acceptedConnLimit
         }
@@ -575,6 +576,8 @@ withBidirectionalConnectionManager name timeouts
                     serverConnectionManager = connectionManager,
                     serverInboundIdleTimeout = Just (tProtocolIdleTimeout timeouts),
                     serverControlChannel = inbgovControlChannel,
+                    governorControlChannel = outbgovControlChannel,
+                    getPeerSharing = \(DataFlowProtocolData _ ps) -> ps,
                     serverObservableStateVar = observableStateVar
                   }
               )

@@ -55,6 +55,7 @@ import           Ouroboros.Network.InboundGovernor
 import           Ouroboros.Network.InboundGovernor.ControlChannel
 import qualified Ouroboros.Network.InboundGovernor.ControlChannel as ControlChannel
 import           Ouroboros.Network.Mux
+import           Ouroboros.Network.PeerSelection.PeerSharing.Type (PeerSharing)
 import           Ouroboros.Network.Server.RateLimiting
 import           Ouroboros.Network.Snocket
 
@@ -89,6 +90,16 @@ data ServerArguments (muxMode  :: MuxMode) socket peerAddr versionData versionNu
       --
       serverControlChannel        :: ServerControlChannel muxMode peerAddr versionData
                                                         bytes m a b,
+
+      -- | Governor control channel var is passed as an argument; this allows the Server
+      -- to communicate with the Outbound Governor telling it about new inbound
+      -- connections to add to the Known Peers Set.
+      --
+      governorControlChannel        :: GovernorControlChannel peerAddr m,
+
+      -- | Extract 'PeerSharing' value from 'versionData'
+      --
+      getPeerSharing :: versionData -> PeerSharing,
 
       -- | Observable mutable state.
       --
@@ -141,6 +152,8 @@ run ServerArguments {
       serverInboundIdleTimeout,
       serverConnectionManager,
       serverControlChannel,
+      governorControlChannel,
+      getPeerSharing,
       serverObservableStateVar
     } = do
       let sockets = NonEmpty.toList serverSockets
@@ -156,6 +169,8 @@ run ServerArguments {
                         inboundGovernor serverTrTracer
                                         inboundGovernorTracer
                                         serverControlChannel
+                                        governorControlChannel
+                                        getPeerSharing
                                         serverInboundIdleTimeout
                                         serverConnectionManager
                                         serverObservableStateVar)

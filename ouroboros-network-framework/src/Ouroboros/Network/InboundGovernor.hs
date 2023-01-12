@@ -60,11 +60,12 @@ import           Ouroboros.Network.ConnectionId (ConnectionId (..))
 import           Ouroboros.Network.ConnectionManager.Types hiding
                      (TrUnexpectedlyFalseAssertion)
 import           Ouroboros.Network.InboundGovernor.ControlChannel
-                     (ServerControlChannel)
+                     (GovernorControlChannel, ServerControlChannel)
 import qualified Ouroboros.Network.InboundGovernor.ControlChannel as ControlChannel
 import           Ouroboros.Network.InboundGovernor.Event
 import           Ouroboros.Network.InboundGovernor.State
 import           Ouroboros.Network.Mux
+import           Ouroboros.Network.PeerSelection.PeerSharing.Type (PeerSharing)
 import           Ouroboros.Network.Server.RateLimiting
 
 
@@ -99,13 +100,16 @@ inboundGovernor :: forall (muxMode :: MuxMode) socket peerAddr versionData versi
                 => Tracer m (RemoteTransitionTrace peerAddr)
                 -> Tracer m (InboundGovernorTrace peerAddr)
                 -> ServerControlChannel muxMode peerAddr versionData ByteString m a b
+                -> GovernorControlChannel peerAddr m
+                -> (versionData -> PeerSharing)
                 -> Maybe DiffTime -- protocol idle timeout
                 -> MuxConnectionManager muxMode socket peerAddr versionData
                                         versionNumber ByteString m a b
                 -> StrictTVar m InboundGovernorObservableState
                 -> m Void
-inboundGovernor trTracer tracer serverControlChannel inboundIdleTimeout
-                connectionManager observableStateVar = do
+inboundGovernor trTracer tracer serverControlChannel governorControlChannel
+                getPeerSharing inboundIdleTimeout connectionManager
+                observableStateVar = do
     -- State needs to be a TVar, otherwise, when catching the exception inside
     -- the loop we do not have access to the most recent version of the state
     -- and might be truncating transitions.
@@ -176,9 +180,17 @@ inboundGovernor trTracer tracer serverControlChannel inboundIdleTimeout
             provenance
             connId
             csDataFlow
-            (Handle csMux muxBundle _ _)) -> do
+            (Handle csMux muxBundle _ versionData)) -> do
 
               traceWith tracer (TrNewConnection provenance connId)
+
+              -- Comunicate this new inbound connection to the Outbound Governor
+              when (provenance == Inbound) $
+                atomically $
+                  ControlChannel.writeMessage governorControlChannel
+                                              ( localAddress connId
+                                              , getPeerSharing versionData
+                                              )
 
               igsConnections <- Map.alterF
                       (\case

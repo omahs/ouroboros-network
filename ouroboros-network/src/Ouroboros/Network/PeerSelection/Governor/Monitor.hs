@@ -13,6 +13,7 @@ module Ouroboros.Network.PeerSelection.Governor.Monitor
   , jobs
   , connections
   , localRoots
+  , newInboundConnections
   ) where
 
 import           Data.Map.Strict (Map)
@@ -38,6 +39,8 @@ import           Ouroboros.Network.PeerSelection.Governor.Types hiding
 import qualified Ouroboros.Network.PeerSelection.KnownPeers as KnownPeers
 import           Ouroboros.Network.PeerSelection.LedgerPeers (LedgerPeer (..))
 import qualified Ouroboros.Network.PeerSelection.LocalRootPeers as LocalRootPeers
+import           Ouroboros.Network.PeerSelection.PeerAdvertise.Type
+                     (PeerAdvertise (..))
 import           Ouroboros.Network.PeerSelection.Types
 
 
@@ -90,6 +93,34 @@ jobs jobPool st =
       Completion completion <- JobPool.waitForJob jobPool
       return (completion st)
 
+-- | Monitor new inbound connections
+--
+newInboundConnections :: forall m peeraddr peerconn.
+                          (MonadSTM m, Ord peeraddr)
+                      => PeerSelectionActions peeraddr peerconn m
+                      -> PeerSelectionState peeraddr peerconn
+                      -> Guarded (STM m) (TimedDecision m peeraddr peerconn)
+newInboundConnections PeerSelectionActions{
+                        readNewInboundConnection
+                      }
+                      st@PeerSelectionState {
+                        knownPeers
+                      } =
+    Guarded Nothing $ do
+      (addr, ps) <- readNewInboundConnection
+      return $ \_ ->
+        let -- If peer happens to already be present in the Known Peer set
+            -- 'insert' is going to do its due diligence before adding.
+            newEntry    = Map.singleton addr (Just ps, DoAdvertisePeer, IsNotLedgerPeer)
+            knownPeers' = KnownPeers.insert newEntry knownPeers
+         in Decision {
+              decisionTrace = [TraceNewInboundConnection addr ps],
+              decisionJobs = [],
+              decisionState =
+                st {
+                  knownPeers = knownPeers'
+                }
+            }
 
 -- | Monitor connections.
 --

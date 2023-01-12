@@ -42,7 +42,7 @@ import qualified Data.OrdPSQ as PSQ
 import           System.Random (mkStdGen)
 
 import           Control.Exception (AssertionFailed (..), catch, evaluate)
-import           Control.Monad.Class.MonadSTM (STM)
+import           Control.Monad.Class.MonadSTM (STM, retry)
 import           Control.Monad.Class.MonadTime
 import           Control.Monad.IOSim.Types hiding (STM)
 import           Control.Tracer (Tracer (..))
@@ -571,28 +571,29 @@ traceNum TracePublicRootsFailure{}       = 04
 traceNum TracePeerShareRequests{}        = 05
 traceNum TracePeerShareResults{}         = 06
 traceNum TracePeerShareResultsFiltered{} = 07
-traceNum TraceForgetColdPeers{}          = 08
-traceNum TracePromoteColdPeers{}         = 09
-traceNum TracePromoteColdLocalPeers{}    = 10
-traceNum TracePromoteColdFailed{}        = 11
-traceNum TracePromoteColdDone{}          = 12
-traceNum TracePromoteWarmPeers{}         = 13
-traceNum TracePromoteWarmLocalPeers{}    = 14
-traceNum TracePromoteWarmFailed{}        = 15
-traceNum TracePromoteWarmDone{}          = 16
-traceNum TraceDemoteWarmPeers{}          = 17
-traceNum TraceDemoteWarmFailed{}         = 18
-traceNum TraceDemoteWarmDone{}           = 19
-traceNum TraceDemoteHotPeers{}           = 20
-traceNum TraceDemoteLocalHotPeers{}      = 21
-traceNum TraceDemoteHotFailed{}          = 22
-traceNum TraceDemoteHotDone{}            = 23
-traceNum TraceDemoteAsynchronous{}       = 24
-traceNum TraceGovernorWakeup{}           = 25
-traceNum TraceChurnWait{}                = 26
-traceNum TraceChurnMode{}                = 27
-traceNum TracePromoteWarmAborted{}       = 28
-traceNum TraceDemoteLocalAsynchronous{}  = 29
+traceNum TraceNewInboundConnection{}     = 08
+traceNum TraceForgetColdPeers{}          = 09
+traceNum TracePromoteColdPeers{}         = 10
+traceNum TracePromoteColdLocalPeers{}    = 11
+traceNum TracePromoteColdFailed{}        = 12
+traceNum TracePromoteColdDone{}          = 13
+traceNum TracePromoteWarmPeers{}         = 14
+traceNum TracePromoteWarmLocalPeers{}    = 15
+traceNum TracePromoteWarmFailed{}        = 16
+traceNum TracePromoteWarmDone{}          = 17
+traceNum TraceDemoteWarmPeers{}          = 18
+traceNum TraceDemoteWarmFailed{}         = 19
+traceNum TraceDemoteWarmDone{}           = 20
+traceNum TraceDemoteHotPeers{}           = 21
+traceNum TraceDemoteLocalHotPeers{}      = 22
+traceNum TraceDemoteHotFailed{}          = 23
+traceNum TraceDemoteHotDone{}            = 24
+traceNum TraceDemoteAsynchronous{}       = 25
+traceNum TraceGovernorWakeup{}           = 26
+traceNum TraceChurnWait{}                = 27
+traceNum TraceChurnMode{}                = 28
+traceNum TracePromoteWarmAborted{}       = 29
+traceNum TraceDemoteLocalAsynchronous{}  = 30
 
 allTraceNames :: Map Int String
 allTraceNames =
@@ -2283,6 +2284,7 @@ _governorFindingPublicRoots targetNumberOfRootPeers readDomains peerSharing =
                 requestPeerShare         = \_ _ -> return (PeerSharingResult []),
                 peerConnToPeerSharing    = \ps -> ps,
                 requestPublicRootPeers   = \_ -> return (Map.empty, 0),
+                readNewInboundConnection = retry,
                 peerStateActions         = PeerStateActions {
                   establishPeerConnection  = error "establishPeerConnection",
                   monitorPeerConnection    = error "monitorPeerConnection",
