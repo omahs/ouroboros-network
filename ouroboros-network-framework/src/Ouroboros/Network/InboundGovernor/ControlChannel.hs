@@ -11,6 +11,7 @@ module Ouroboros.Network.InboundGovernor.ControlChannel
   ( NewConnection (..)
   , ControlChannel (..)
   , ServerControlChannel
+  , GovernorControlChannel
   , newControlChannel
   ) where
 
@@ -24,6 +25,7 @@ import           Network.Mux.Types (MuxMode)
 import           Ouroboros.Network.ConnectionHandler
 import           Ouroboros.Network.ConnectionId (ConnectionId (..))
 import           Ouroboros.Network.ConnectionManager.Types
+import           Ouroboros.Network.PeerSelection.PeerSharing.Type (PeerSharing)
 
 
 -- | Announcement message for a new connection.
@@ -53,31 +55,41 @@ instance Show peerAddr
 
 
 
--- | A Server control channel which instantiates 'handle'.
+-- | A Server control channel which instantiates to 'NewConnection' and 'Handle'.
+--
+-- It allows to pass 'STM' transactions which will resolve to 'NewConnection'.
+-- Server's monitoring thread is the consumer of these messages; there are two
+-- producers: accept loop and connection handler for outbound connections.
 --
 type ServerControlChannel (muxMode :: MuxMode) peerAddr versionData bytes m a b =
-    ControlChannel peerAddr (Handle muxMode peerAddr versionData bytes m a b) m
+    ControlChannel (NewConnection peerAddr (Handle muxMode peerAddr versionData bytes m a b)) m
 
--- | Control channel.  It allows to pass 'STM' transactions which will
--- resolve to 'NewConnection'.   Server's monitoring thread is the consumer
--- of these messages; there are two producers: accept loop and connection
--- handler for outbound connections.
+-- | Control Channel between Server and Outbound Governor.
 --
-data ControlChannel peerAddr handle m =
-  ControlChannel {
-    -- | Read a single 'NewConnection' instruction from the channel.
-    --
-    readMessage  :: STM m (NewConnection peerAddr handle),
+-- Control channel that is meant to share inbound connections with the Peer
+-- Selection Governor. So the consumer is the Governor and Producer is the
+-- Server.
+--
+type GovernorControlChannel peerAddr m =
+    ControlChannel (peerAddr, PeerSharing) m
 
-    -- | Write a 'NewConnection' to the channel.
+-- | Control channel.
+--
+data ControlChannel a m =
+  ControlChannel {
+    -- | Read a single value from the channel.
     --
-    writeMessage :: NewConnection peerAddr handle -> STM m ()
+    readMessage  :: STM m a,
+
+    -- | Write a value to the channel.
+    --
+    writeMessage :: a -> STM m ()
   }
 
 
-newControlChannel :: forall peerAddr handle m.
+newControlChannel :: forall a m.
                      MonadLabelledSTM m
-                  => m (ControlChannel peerAddr handle m)
+                  => m (ControlChannel a m)
 newControlChannel = do
     channel <-
       atomically $

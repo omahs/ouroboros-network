@@ -57,7 +57,7 @@ import           Ouroboros.Network.ConnectionId
 import           Ouroboros.Network.ConnectionManager.Types
 import qualified Ouroboros.Network.ConnectionManager.Types as CM
 import           Ouroboros.Network.InboundGovernor.ControlChannel
-                     (ControlChannel (..))
+                     (ControlChannel (..), NewConnection)
 import qualified Ouroboros.Network.InboundGovernor.ControlChannel as ControlChannel
 import           Ouroboros.Network.MuxMode
 import           Ouroboros.Network.Server.RateLimiting
@@ -545,7 +545,7 @@ withConnectionManager
     -- ^ Callback which runs in a thread dedicated for a given connection.
     -> (handleError -> HandleErrorType)
     -- ^ classify 'handleError's
-    -> InResponderMode muxMode (ControlChannel peerAddr handle m)
+    -> InResponderMode muxMode (ControlChannel (NewConnection peerAddr handle) m)
     -- ^ On outbound duplex connections we need to notify the server about
     -- a new connection.
     -> (ConnectionManager muxMode socket peerAddr handle handleError m -> m a)
